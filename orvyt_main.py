@@ -61,7 +61,7 @@ async def dten(ctx):
     
 @client.slash_command(guild_ids=GUILD_IDS)
 async def logall(ctx):
-    if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'] !=None or ctx.interaction.user.id==693848229896388669):
+    if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'] !=None) or ctx.interaction.user.id==693848229896388669:
         await ctx.respond(str(PLAYERS[ctx.interaction.guild.id]))
     else:
         await ctx.respond('classified')
