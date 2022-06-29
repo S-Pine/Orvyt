@@ -10,7 +10,7 @@ intents.members = True
 client=discord.Bot(intents=intents)
 
 PLAYERS={}
-GUILD_IDS=[842493087905611826]
+GUILD_IDS=[842493087905611826, 989761552083197982]
 MASTER_LIST={
     'M':['Aluminium', 'Cobalt', 'Copper', 'Graphite', 'Gold', 'Iron', 'Niobium', 'Silver', 'Steel','Titanium'],
     'F':['Dihydrogen Oxide', 'Helium', 'Hydrogen', 'Oxygen', 'Tritium', 'Xenon'],
