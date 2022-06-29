@@ -153,7 +153,7 @@ async def give(ctx, user:discord.Option(discord.Member, "whom to give money to."
     if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
         await ctx.respond(f'{user.name} now has {PLAYERS[user.guild.id][user.id]["Credits"]} credits', ephemeral=True)
     else:
-        PLAYERS[ctx.interaction.guild][ctx.interaction.user.id]['Credits']+=wealth
+        PLAYERS[ctx.interaction.guild.id][ctx.interaction.user.id]['Credits']+=wealth
         await ctx.respond(f'{ctx.interaction.user.name} gave {user.name} {wealth} credits')
 
 @credit.command(guild_ids=GUILD_IDS)
