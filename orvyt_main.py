@@ -7,7 +7,7 @@ load_dotenv()
 intents = discord.Intents.default()
 intents.members = True
 
-client=discord.Bot(intents=intents)
+client=discord.Bot(intents=intents, debug_guilds=[842493087905611826, 989761552083197982])
 
 PLAYERS={}
 GUILD_IDS=[842493087905611826, 989761552083197982]
