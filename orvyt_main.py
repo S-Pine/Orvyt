@@ -68,8 +68,9 @@ async def logall(ctx):
 
 @client.slash_command(guild_ids=GUILD_IDS)
 async def give(ctx, user:discord.Option(discord.Member, "who to give to."), category:discord.Option(str,choices=['M','F','R','C', 'S']), number:discord.Option(int, "what serial number of item")):
-    if number>=len(MASTER_LIST[category]):
-        ctx.respond('number too high, that\'s not a real item')
+    number-=1
+    if number>=len(MASTER_LIST[category]) or number<=0:
+        ctx.respond('number is wrong, that\'s not a real item')
     else:
         choice=MASTER_LIST[category][number]
         target=PLAYERS[user.guild.id][user.id]
@@ -93,9 +94,10 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
 
 @client.slash_command(guild_ids=GUILD_IDS)
 async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), category:discord.Option(str,choices=['M','F','R','C', 'S']),number:discord.Option(int, "what serial number of item")):
+    number-=1
     target=PLAYERS[user.guild.id][user.id]
-    if number>=len(MASTER_LIST[category]):
-        ctx.respond('number too high, that\'s not a real item')
+    if number>=len(MASTER_LIST[category]) or number<=0:
+        ctx.respond('number too wrong, that\'s not a real item')
     else:
         item=MASTER_LIST[category][number]
         if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
@@ -141,17 +143,11 @@ view=client.create_group('view')
 
 @view.command(guild_ids=GUILD_IDS)
 async def items(ctx, user:discord.Option(discord.Member, "whose items")):
-    if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
-        await ctx.respond(str(PLAYERS[user.guild.id][user.id]['Inventory']), ephemeral=True)
-    else:
-        ctx.repond(f'respect {user.name}\'s privacy!')
+    await ctx.respond(str(PLAYERS[user.guild.id][user.id]['Inventory']), ephemeral=True)
 
 @view.command(guild_ids=GUILD_IDS)
 async def schematics(ctx, user:discord.Option(discord.Member, "whose schemaitcs")):
-    if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
         await ctx.respond(str(PLAYERS[user.guild.id][user.id]['Schematics']), ephemeral=True)
-    else:
-        ctx.repond(f'respect {user.name}\'s privacy!')
 
 credit=client.create_group('credit')
 
