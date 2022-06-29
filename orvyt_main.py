@@ -68,40 +68,47 @@ async def logall(ctx):
 
 @client.slash_command(guild_ids=GUILD_IDS)
 async def give(ctx, user:discord.Option(discord.Member, "who to give to."), category:discord.Option(str,choices=['M','F','R','C', 'S']), number:discord.Option(int, "what serial number of item")):
-    choice=MASTER_LIST[category][number]
-    target=PLAYERS[user.guild.id][user.id]
-    sender=PLAYERS[user.guild.id][ctx.interaction.user.id]
-    if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
-        if category=='S':
-            target['Schematics'].append(choice)
-        else:
-            target['Inventory'].append(choice)
-        await ctx.respond(f'{user.name} was given {choice}')
-    elif choice in sender['Schematics']:
-        target['Schematics'].append(choice)
-        sender['Schematics'].remove(choice)
-        await ctx.respond(f'you gave {user.name} {choice}')
-    elif choice in sender['Inventory']:
-        target[user.id]['Inventory'].append(choice)
-        sender['Inventory'].remove(choice)
-        await ctx.respond(f'you gave {user.name} {choice}')
+    if number>=len(MASTER_LIST[category]):
+        ctx.respond('number too high, that\'s not a real item')
     else:
-        await ctx.respond('you cannot give what you don\'t have')
+        choice=MASTER_LIST[category][number]
+        target=PLAYERS[user.guild.id][user.id]
+        sender=PLAYERS[user.guild.id][ctx.interaction.user.id]
+        if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
+            if category=='S':
+                target['Schematics'].append(choice)
+            else:
+                target['Inventory'].append(choice)
+            await ctx.respond(f'{user.name} was given {choice}')
+        elif choice in sender['Schematics']:
+            target['Schematics'].append(choice)
+            sender['Schematics'].remove(choice)
+            await ctx.respond(f'you gave {user.name} {choice}')
+        elif choice in sender['Inventory']:
+            target[user.id]['Inventory'].append(choice)
+            sender['Inventory'].remove(choice)
+            await ctx.respond(f'you gave {user.name} {choice}')
+        else:
+            await ctx.respond('you cannot give what you don\'t have')
+
 @client.slash_command(guild_ids=GUILD_IDS)
 async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), category:discord.Option(str,choices=['M','F','R','C', 'S']),number:discord.Option(int, "what serial number of item")):
     target=PLAYERS[user.guild.id][user.id]
-    item=MASTER_LIST[category][number]
-    if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
-        if item in target['Schematics']:
-            target['Schematics'].remove(item)
-            await ctx.respond(f'Schematic {item} removed from {user.name}')
-        elif item in target['Inventory']:
-            target['Inventory'].remove(item)
-            await ctx.respond(f'Item {item} removed from {user.name}')
-        else:
-            await ctx.respond('Target does not posses that item.')
+    if number>=len(MASTER_LIST[category]):
+        ctx.respond('number too high, that\'s not a real item')
     else:
-        await ctx.respond('You do not have permission to rob people.', ephemeral=True)
+        item=MASTER_LIST[category][number]
+        if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
+            if item in target['Schematics']:
+                target['Schematics'].remove(item)
+                await ctx.respond(f'Schematic {item} removed from {user.name}')
+            elif item in target['Inventory']:
+                target['Inventory'].remove(item)
+                await ctx.respond(f'Item {item} removed from {user.name}')
+            else:
+                await ctx.respond('Target does not posses that item.')
+        else:
+            await ctx.respond('You do not have permission to rob people.', ephemeral=True)
 
 
 
