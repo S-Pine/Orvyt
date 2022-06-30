@@ -177,7 +177,7 @@ async def remove(ctx, user:discord.Option(discord.Member, 'who\'s money to take'
 
 @credit.command(guild_ids=GUILD_IDS)
 async def view(ctx, user:discord.Option(discord.Member, 'who\s money to view'), displayed:discord.Option(bool,'whether to display it to others')=False):
-    await ctx.respond(f'{user.name} has {PLAYERS[user.guild.id][user.id]}', ephemeral= not displayed)
+    await ctx.respond(f'{user.name} has {PLAYERS[user.guild.id][user.id]["Credits"]}', ephemeral= not displayed)
 
 
 client.run(getenv('TOKEN'))
