@@ -104,7 +104,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         else:
             await ctx.respond('you cannot give what you don\'t have')
 
-@client.slash_command()
+@client.slash_command(description="remove item from player's inventory (GM only)")
 async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), category:discord.Option(str,choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)', 'Schematic(S)']),number:discord.Option(int, "what serial number of item", min_value=1)):
     category=SHORT_FORM[category]
     target=PLAYERS[user.guild.id][user.id]
@@ -123,7 +123,7 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
         await ctx.respond('You do not have permission to rob people.', ephemeral=True)
             
 
-@client.slash_command("add materials from random table")
+@client.slash_command(description="add materials from random table")
 async def scavenge(ctx, user:discord.Option(discord.Member),table:discord.Option(str, choices=['Standard', 'Overseer', 'Monarch', 'Weapon', 'Item'])):
     if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
         inventory=PLAYERS[user.guild.id][user.id]['Inventory']
@@ -138,13 +138,13 @@ async def scavenge(ctx, user:discord.Option(discord.Member),table:discord.Option
 
 masterlist=client.create_group('masterlist')
 
-@masterlist.command("add possible material to master list")
+@masterlist.command(description="add possible material to master list")
 async def add(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)']),name:discord.Option(str, 'name of object')):
     category=SHORT_FORM[category]
     MASTER_LIST[category].append(name)
     await ctx.respond(f'{name}({category}{len(MASTER_LIST[category]):03}) was added to the list')
 
-@masterlist.command("remove last material from master list")
+@masterlist.command(description="remove last material from master list")
 async def remove(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)'])):
     category=SHORT_FORM[category]
     removed=MASTER_LIST[category].pop(len(MASTER_LIST[category])-1)
@@ -152,17 +152,17 @@ async def remove(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)
 
 viewCmnds=client.create_group('view')
 
-@viewCmnds.command("view player's items")
+@viewCmnds.command(description="view player's items")
 async def items(ctx, user:discord.Option(discord.Member, "whose items"), display:discord.Option(bool,"display command result to others")=True):
     await ctx.respond(str(PLAYERS[user.guild.id][user.id]['Inventory']), ephemeral=not display)
 
-@viewCmnds.command("view player's schematics")
+@viewCmnds.command(description="view player's schematics")
 async def schematics(ctx, user:discord.Option(discord.Member, "whose schemaitcs"), display:discord.Option(bool,"display command result to others")=True):
         await ctx.respond(str(PLAYERS[user.guild.id][user.id]['Schematics']), ephemeral=not display)
 
 credit=client.create_group('credit')
 
-@credit.command("give money to player")
+@credit.command(description="give money to player")
 async def give(ctx, user:discord.Option(discord.Member, "whom to give money to."), wealth:discord.Option(int,"how much money to give", min_value=0)):
     PLAYERS[user.guild.id][user.id]['Credits']+=wealth
     if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
@@ -171,7 +171,7 @@ async def give(ctx, user:discord.Option(discord.Member, "whom to give money to."
         PLAYERS[ctx.interaction.guild.id][ctx.interaction.user.id]['Credits']-=wealth
         await ctx.respond(f'{ctx.interaction.user.name} gave {user.name} {wealth} credits')
 
-@credit.command()
+@credit.command(description="take player's money (GM only)")
 async def remove(ctx, user:discord.Option(discord.Member, 'who\'s money to take'), wealth:discord.Option(int,"how much money to give", min_value=0)):
     if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
         PLAYERS[user.guild.id][user.id]['Credits']-=wealth
@@ -179,7 +179,7 @@ async def remove(ctx, user:discord.Option(discord.Member, 'who\'s money to take'
     else:
         await ctx.respond('You do not have permission to rob people.', ephemeral=True)
 
-@credit.command("view player's money")
+@credit.command(description="view player's money")
 async def view(ctx, user:discord.Option(discord.Member, 'who\'s money to view'), displayed:discord.Option(bool,"display command result to others")=True):
     await ctx.respond(f'{user.name} has {PLAYERS[user.guild.id][user.id]["Credits"]} Credits', ephemeral= not displayed)
 
