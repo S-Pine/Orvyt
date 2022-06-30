@@ -104,7 +104,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         else:
             await ctx.respond('you cannot give what you don\'t have')
 
-@client.slash_command('remove item from player\'s inventory (GM only)')
+@client.slash_command("remove item from player's inventory (GM only)")
 async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), category:discord.Option(str,choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)', 'Schematic(S)']),number:discord.Option(int, "what serial number of item", min_value=1)):
     category=SHORT_FORM[category]
     target=PLAYERS[user.guild.id][user.id]
