@@ -86,7 +86,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
             sender['Schematics'].remove(choice)
             await ctx.respond(f'you gave {user.name} {choice}(S{number+1:03})')
         elif choice in sender['Inventory']:
-            target[user.id]['Inventory'].append(choice)
+            target['Inventory'].append(choice)
             sender['Inventory'].remove(choice)
             await ctx.respond(f'you gave {user.name} {choice}({category}{number+1:03})')
         else:
