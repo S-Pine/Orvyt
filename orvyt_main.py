@@ -171,7 +171,7 @@ async def give(ctx, user:discord.Option(discord.Member, "whom to give money to."
         PLAYERS[ctx.interaction.guild.id][ctx.interaction.user.id]['Credits']-=wealth
         await ctx.respond(f'{ctx.interaction.user.name} gave {user.name} {wealth} credits')
 
-@credit.command("take player's money (GM only)")
+@credit.command()
 async def remove(ctx, user:discord.Option(discord.Member, 'who\'s money to take'), wealth:discord.Option(int,"how much money to give", min_value=0)):
     if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
         PLAYERS[user.guild.id][user.id]['Credits']-=wealth
