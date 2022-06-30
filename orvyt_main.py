@@ -51,8 +51,8 @@ async def on_member_join(member):
 @client.slash_command(guild_ids=GUILD_IDS)
 async def help(ctx):
     longmsg='My Commands!\n dten: returns a number between 1 and 10.\n logall\*: logs all the information I have in this guild, necessary for when I need to be edited. \n give\*\*: allows you to trade or be given items for you inventory!\n'
-    longmsg+='remove\*: removed the stated item from a player.\n scavenge\*: for rolling on random tables to give players items\n masterlist*: the GM can add or remove possible items\n'
-    longmsg+='view\*: see player\'s inventories and schematics!\n credit\*\*: exhange credits!\n *: gm only\n \*\*: different for gm.'
+    longmsg+='remove\*: removed the stated item from a player.\n scavenge\*: for rolling on random tables to give players items\n masterlist\*: the GM can add or remove possible items\n'
+    longmsg+='view\*: see player\'s inventories and schematics!\n credit\*\*: exhange credits!\n \*: gm only\n \*\*: different for gm.'
     await ctx.respond(longmsg)
 
 @client.slash_command(guild_ids=GUILD_IDS)
@@ -80,15 +80,15 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
                 target['Schematics'].append(choice)
             else:
                 target['Inventory'].append(choice)
-            await ctx.respond(f'{user.name} was given {choice}')
+            await ctx.respond(f'{user.name} was given {choice}({category}{number+1:03})')
         elif choice in sender['Schematics']:
             target['Schematics'].append(choice)
             sender['Schematics'].remove(choice)
-            await ctx.respond(f'you gave {user.name} {choice}')
+            await ctx.respond(f'you gave {user.name} {choice}(S{number+1:03})')
         elif choice in sender['Inventory']:
             target[user.id]['Inventory'].append(choice)
             sender['Inventory'].remove(choice)
-            await ctx.respond(f'you gave {user.name} {choice}')
+            await ctx.respond(f'you gave {user.name} {choice}({category}{number+1:03})')
         else:
             await ctx.respond('you cannot give what you don\'t have')
 
@@ -103,10 +103,10 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
         if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
             if item in target['Schematics']:
                 target['Schematics'].remove(item)
-                await ctx.respond(f'Schematic {item} removed from {user.name}')
+                await ctx.respond(f'Schematic {item}({category}{number+1:03}) removed from {user.name}')
             elif item in target['Inventory']:
                 target['Inventory'].remove(item)
-                await ctx.respond(f'Item {item} removed from {user.name}')
+                await ctx.respond(f'Item {item}({category}{number+1:03}) removed from {user.name}')
             else:
                 await ctx.respond('Target does not posses that item.')
         else:
