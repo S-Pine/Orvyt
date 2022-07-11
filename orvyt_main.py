@@ -45,7 +45,7 @@ async def on_ready():
     print('Orvyt_Online!')
     cursor=conn.cursor()
     for guild in client.guilds:
-        cursor.execute(f'CREATE_TABLE {guild.id} (MemberID INT PRIMARY KEY, Credits INT, Items VARCHAR(25)[], Schematics INT[])')
+        cursor.execute(f'CREATE TABLE {guild.id} (MemberID INT PRIMARY KEY, Credits INT, Items VARCHAR(25)[], Schematics INT[])')
         for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
         for member in guild.members:
@@ -54,7 +54,7 @@ async def on_ready():
 @client.event
 async def on_guild_join(guild):
     cursor=conn.cursor()
-    cursor.execute(f'CREATE_TABLE {guild.id} (MemberID INT PRIMARY KEY, Credits INT, Items VARCHAR(25)[], Schematics INT[])')
+    cursor.execute(f'CREATE TABLE {guild.id} (MemberID INT PRIMARY KEY, Credits INT, Items VARCHAR(25)[], Schematics INT[])')
     for member in guild.members:
         cursor.execute(f'INSERT INTO {guild.id} VALUES ({member.id},0,ARRAY[],ARRAY[])')
     for role in guild.roles:
