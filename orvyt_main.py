@@ -46,7 +46,7 @@ async def on_ready():
     print('Orvyt_Online!')
     cursor=conn.cursor()
     for guild in client.guilds:
-        query=sql.SQL('CREATE TABLE {guildID} (MemberID INT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
+        query=sql.SQL('CREATE TABLE {guildID} (MemberID INT PRIMARY KEY, Credits BIGINT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
         cursor.execute(query)
         for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
@@ -57,7 +57,7 @@ async def on_ready():
 @client.event
 async def on_guild_join(guild):
     cursor=conn.cursor()
-    query=sql.SQL('CREATE TABLE {guildID} (MemberID INT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
+    query=sql.SQL('CREATE TABLE {guildID} (MemberID INT PRIMARY KEY, Credits BIGINT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
     cursor.execute(query)
     for member in guild.members:
         query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
