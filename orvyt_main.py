@@ -45,7 +45,7 @@ async def on_ready():
     print('Orvyt_Online!')
     cursor=conn.cursor()
     for guild in client.guilds:
-        cursor.execute(f'CREATE TABLE %s (MemberID INT, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[])',(guild.id))
+        cursor.execute(f'CREATE TABLE %s (MemberID INT, Items VARCHAR(25)[])',(guild.id))
         for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
         for member in guild.members:
