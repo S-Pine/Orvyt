@@ -1,9 +1,10 @@
 import discord
 import random
 import os
+import psycopg2
 
-
-
+DATABASE_URL=os.environ['postgres://lpxofxigfagtst:3f2e97ed1b3dd10584b8242ef8f755cdb883a2cd48ed2f65f35d9c8ce08bbdd5@ec2-3-209-124-113.compute-1.amazonaws.com:5432/dacduqbpsdub6k']
+conn=psycopg2.connect(DATABASE_URL, sslmode='require')
 intents = discord.Intents.default()
 intents.members = True
 
@@ -37,28 +38,32 @@ SHORT_FORM={
     'Item(I)':'I',
     'Weapon(W)':'W'
 }
+GM={}
 
 @client.event
 async def on_ready():
     print('Orvyt_Online!')
+    cursor=conn.cursor()
     for guild in client.guilds:
-        PLAYERS[guild.id]={}
+        cursor.execute(f'CREATE_TABLE {guild.id} (MemberID INT PRIMARY KEY, Credits INT, Items VARCHAR(25)[], Schematics INT[])')
         for role in guild.roles:
-            if role.name=='Game Master': PLAYERS[guild.id]['GM']=role.id
+            if role.name=='Game Master': GM[guild.id]=role.id
         for member in guild.members:
-            PLAYERS[guild.id][member.id]={'Credits':0, 'Inventory':[], 'Schematics':[]}
+            cursor.execute(f'INSERT INTO {guild.id} VALUES ({member.id},0,ARRAY[],ARRAY[])')
 
 @client.event
 async def on_guild_join(guild):
-    PLAYERS[guild.id]={}
+    cursor=conn.cursor()
+    cursor.execute(f'CREATE_TABLE {guild.id} (MemberID INT PRIMARY KEY, Credits INT, Items VARCHAR(25)[], Schematics INT[])')
     for member in guild.members:
-        PLAYERS[guild.id][member.id]={'Credits':0, 'Inventory':[], 'Schematics':[]}
+        cursor.execute(f'INSERT INTO {guild.id} VALUES ({member.id},0,ARRAY[],ARRAY[])')
     for role in guild.roles:
-            if role.name=='Game Master': PLAYERS[guild.id]['GM']=role.id
+            if role.name=='Game Master': GM[guild.id]=role.id
 
 @client.event
 async def on_member_join(member):
-    PLAYERS[member.guild.id][member.id]={'Credits':0, 'Inventory':[], 'Schematics':[]}
+    cursor=conn.cursor()
+    cursor.execute(f'INSERT INTO {member.guild.id} VALUES ({member.id},0,ARRAY[],ARRAY[])')
 
 @client.slash_command()
 async def help(ctx, display:discord.Option(bool,"display command result to others")=True):
