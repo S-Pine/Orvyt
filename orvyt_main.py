@@ -45,25 +45,25 @@ async def on_ready():
     print('Orvyt_Online!')
     cursor=conn.cursor()
     for guild in client.guilds:
-        cursor.execute(f'CREATE TABLE %s (MemberID INT PRIMARY KEY, Credits INT, Items VARCHAR(25)[], Schematics INT[])',(guild.id))
+        cursor.execute(f'CREATE TABLE %s (MemberID INT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT VARCHAR(25)[], Schematics INT[] DEFAULT ARRAY[]::INT[])',(guild.id))
         for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
         for member in guild.members:
-            cursor.execute(f'INSERT INTO %s VALUES (%s,0,VARCHAR(25)[],INT[])',(guild.id,member.id))
+            cursor.execute(f'INSERT INTO %s (MemberID) VALUES (%s)',(guild.id,member.id))
 
 @client.event
 async def on_guild_join(guild):
     cursor=conn.cursor()
-    cursor.execute(f'CREATE TABLE %s (MemberID INT PRIMARY KEY, Credits INT, Items VARCHAR(25)[], Schematics INT[])',(guild.id))
+    cursor.execute(f'CREATE TABLE %s (MemberID INT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT VARCHAR(25)[], Schematics INT[] DEFAULT ARRAY[]::INT[])',(guild.id))
     for member in guild.members:
-        cursor.execute(f'INSERT INTO %s VALUES (%s,0,VARCHAR(25)[],INT[])',(guild.id,member.id))
+        cursor.execute(f'INSERT INTO %s (MemberID) VALUES (%s)',(guild.id,member.id))
     for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
 
 @client.event
 async def on_member_join(member):
     cursor=conn.cursor()
-    cursor.execute(f'INSERT INTO %s VALUES (%s,0,VARCHAR(25)[],INT[])',(member.guild.id,member.id))
+    cursor.execute(f'INSERT INTO %s (MemberID) VALUES (%s)',(member.guild.id,member.id))
 
 @client.slash_command()
 async def help(ctx, display:discord.Option(bool,"display command result to others")=True):
