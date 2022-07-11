@@ -51,21 +51,25 @@ async def on_ready():
         for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
         for member in guild.members:
-            cursor.execute('INSERT INTO %s (MemberID) VALUES (%s)',(guild.id,member.id))
+            query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
+            cursor.execute(query,(member.id,))
 
 @client.event
 async def on_guild_join(guild):
     cursor=conn.cursor()
-    cursor.execute(f'CREATE TABLE %s (MemberID INT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT VARCHAR(25)[], Schematics integer ARRAY)',(guild.id))
+    query=sql.SQL('CREATE TABLE {guildID} (MemberID INT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
+    cursor.execute(query)
     for member in guild.members:
-        cursor.execute(f'INSERT INTO %s (MemberID) VALUES (%s)',(guild.id,member.id))
+        query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
+        cursor.execute(query,(member.id,))
     for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
 
 @client.event
 async def on_member_join(member):
     cursor=conn.cursor()
-    cursor.execute(f'INSERT INTO %s (MemberID) VALUES (%s)',(member.guild.id,member.id))
+    query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(member.guild.id)))
+    cursor.execute(query,(member.id,))
 
 @client.slash_command()
 async def help(ctx, display:discord.Option(bool,"display command result to others")=True):
@@ -167,7 +171,8 @@ viewCmnds=client.create_group('view')
 @viewCmnds.command(description="view player's items")
 async def items(ctx, user:discord.Option(discord.Member, "whose items"), display:discord.Option(bool,"display command result to others")=True):
     cursor=conn.cursor()
-    cursor.execute(f'SELECT Items FROM "{user.guild.id}" where MemberID={user.id}')
+    query=sql.SQL('SELECT Items FROM {guildID} where MemberID=%s').format(guildID=sql.Identifier(str(user.guild.id)))
+    cursor.execute(query,(user.id,))
     await ctx.respond(str(cursor.fetchone()), ephemeral=not display)
 
 @viewCmnds.command(description="view player's schematics")
