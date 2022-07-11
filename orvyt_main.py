@@ -3,7 +3,7 @@ import random
 import os
 import psycopg2
 
-DATABASE_URL=os.environ['postgres://lpxofxigfagtst:3f2e97ed1b3dd10584b8242ef8f755cdb883a2cd48ed2f65f35d9c8ce08bbdd5@ec2-3-209-124-113.compute-1.amazonaws.com:5432/dacduqbpsdub6k']
+DATABASE_URL=os.environ['DATABASE_URL']
 conn=psycopg2.connect(DATABASE_URL, sslmode='require')
 intents = discord.Intents.default()
 intents.members = True
