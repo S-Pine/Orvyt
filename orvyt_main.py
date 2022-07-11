@@ -2,6 +2,7 @@ import discord
 import random
 import os
 import psycopg2
+from psycopg2 import sql
 
 DATABASE_URL=os.environ['DATABASE_URL']
 conn=psycopg2.connect(DATABASE_URL, sslmode='require')
@@ -45,7 +46,7 @@ async def on_ready():
     print('Orvyt_Online!')
     cursor=conn.cursor()
     for guild in client.guilds:
-        cursor.execute('CREATE TABLE %s (MemberID INT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[]);',(guild.id,))
+        cursor.execute('CREATE TABLE {guildID} (MemberID INT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])'.format(guildID=sql.Identifier(str(guild.id))))
         for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
         for member in guild.members:
