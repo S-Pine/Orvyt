@@ -128,7 +128,7 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
         cursor=conn.cursor()
         guildID=sql.Identifier(str(user.guild.id))
         query=sql.SQL('SELECT Schematics FROM {} WHERE MemberID=%s').format(guildID)
-        cursor.execute(query, (user,id,))
+        cursor.execute(query, (user.id,))
         targetHas=number in cursor.fetchone()[0] 
         if category=='Schematic(S)':
             if targetHas:
@@ -148,13 +148,14 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
 
 @client.slash_command(description="add materials from random table")
 async def scavenge(ctx, user:discord.Option(discord.Member),table:discord.Option(str, choices=['Standard', 'Overseer', 'Monarch', 'Weapon', 'Item'])):
-    if ctx.interaction.user.get_role(PLAYERS[ctx.interaction.guild.id]['GM'])!= None:
-        inventory=PLAYERS[user.guild.id][user.id]['Inventory']
+    if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
+        cursor=conn.cursor()
         response=''
         for category in TABLES[table]:
             choice=random.choice(MASTER_LIST[category])
             response+=choice+', '
-            inventory.append(choice)
+            query=sql.SQL('UPDATE {0} SET Items=array_append(Items,%s) WHERE MemberID=%s').format(sql.Identifier(str(user.guild.id)))
+            cursor.execute(query,(choice, user.id))
         await ctx.respond(f'{user.name} scavenged {response}')
     else:
         await ctx.respond('can\'t scavenge without the GM\'s premission!')
