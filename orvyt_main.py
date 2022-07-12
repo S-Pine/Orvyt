@@ -127,21 +127,27 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
     if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
         cursor=conn.cursor()
         guildID=sql.Identifier(str(user.guild.id))
-        query=sql.SQL('SELECT Schematics FROM {} WHERE MemberID=%s').format(guildID)
-        cursor.execute(query, (user.id,))
-        targetHas=number in cursor.fetchone()[0] 
         if category=='Schematic(S)':
-            if targetHas:
-                query=sql.SQL('UPDATE {} SET Schematics=Schematics EXCEPT %s WHERE MemberID=%s').format(guildID)
-                cursor.execute(query,(number,user.id))
+            query=sql.SQL('SELECT Schematics FROM {} WHERE MemberID=%s').format(guildID)
+            cursor.execute(query, (user.id,))
+            schemArray=cursor.fetchone()[0]
+            if number in schemArray:
+                query=sql.SQL('UPDATE {} SET Schematics=%s WHERE MemberID=%s').format(guildID)
+                cursor.execute(query,(schemArray.remove(number),user.id))
                 await ctx.respond(f'Schematic S{number:03} was removed from {user.name}')
             else:
                 await ctx.respond('Target does not posses that item.')
         else:
             item=MASTER_LIST[category[-2]][number-1]
-            query=sql.SQL('UPDATE {} SET Items=Items EXCEPT %s WHERE MemberID=%s').format(guildID)
-            cursor.execute(query,(item,user.id))
-            await ctx.respond(f'Item {item}({category[-2]}{number:03}) removed from {user.name}')
+            query=sql.SQL('SELECT Items FROM {} WHERE MemberID=%s').format(guildID)
+            cursor.execute(query, (user.id,))
+            itemArray=cursor.fetchone()[0]
+            if item in itemArray:
+                query=sql.SQL('UPDATE {} SET Items=%s WHERE MemberID=%s').format(guildID)
+                cursor.execute(query,(itemArray.remove(item),user.id))
+                await ctx.respond(f'Item {item}({category[-2]}{number:03}) removed from {user.name}')
+            else:
+                await ctx.respond('Target does not posses that item.')
     else:
         await ctx.respond('You do not have permission to rob people.', ephemeral=True)
             
@@ -209,6 +215,5 @@ async def remove(ctx, user:discord.Option(discord.Member, 'who\'s money to take'
 @credit.command(description="view player's money")
 async def view(ctx, user:discord.Option(discord.Member, 'who\'s money to view'), displayed:discord.Option(bool,"display command result to others")=True):
     await ctx.respond(f'{user.name} has {PLAYERS[user.guild.id][user.id]["Credits"]} Credits', ephemeral= not displayed)
-
 
 client.run(os.environ['ORVYT_TOKEN'])
