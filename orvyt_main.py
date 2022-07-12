@@ -104,7 +104,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
             await ctx.respond('you cannot give what you don\'t have')
     else:
         number-=1
-        choice=MASTER_LIST[category[-3]][number]
+        choice=MASTER_LIST[category[-2]][number]
         query=sql.SQL('SELECT Items FROM {} WHERE MemberID={}').format(guildID,userID)
         cursor.execute(query)
         userHas=choice in cursor.fetchone()[0] 
