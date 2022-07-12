@@ -30,15 +30,6 @@ TABLES={
     'Weapon':['M','C','C'],
     'Item':['M','C']
 }
-SHORT_FORM={
-    'Metal(M)':'M',
-    'Fluid(F)':'F', 
-    'Irradiated(R)':'R', 
-    'Component(C)':'C', 
-    'Schematic(S)':'S',
-    'Item(I)':'I',
-    'Weapon(W)':'W'
-}
 GM={}
 
 @client.event
@@ -174,13 +165,13 @@ masterlist=client.create_group('masterlist')
 
 @masterlist.command(description="add possible material to master list")
 async def add(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)']),name:discord.Option(str, 'name of object')):
-    category=SHORT_FORM[category]
+    category=category[-2]
     MASTER_LIST[category].append(name)
     await ctx.respond(f'{name}({category}{len(MASTER_LIST[category]):03}) was added to the list')
 
 @masterlist.command(description="remove last material from master list")
 async def remove(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)'])):
-    category=SHORT_FORM[category]
+    category=category[-2]
     removed=MASTER_LIST[category].pop(len(MASTER_LIST[category])-1)
     await ctx.respond(f'{removed}({category}{len(MASTER_LIST[category])+1:03}) was removed')
 
