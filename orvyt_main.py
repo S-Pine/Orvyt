@@ -35,15 +35,15 @@ GM={}
 @client.event
 async def on_ready():
     print('Orvyt_Online!')
-    cursor=conn.cursor()
-    for guild in client.guilds:
-        query=sql.SQL('CREATE TABLE {guildID} (MemberID BIGINT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
-        cursor.execute(query)
-        for role in guild.roles:
-            if role.name=='Game Master': GM[guild.id]=role.id
-        for member in guild.members:
-            query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
-            cursor.execute(query,(member.id,))
+    # cursor=conn.cursor()
+    # for guild in client.guilds:
+    #     query=sql.SQL('CREATE TABLE {guildID} (MemberID BIGINT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
+    #     cursor.execute(query)
+    #     for role in guild.roles:
+    #         if role.name=='Game Master': GM[guild.id]=role.id
+    #     for member in guild.members:
+    #         query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
+    #         cursor.execute(query,(member.id,))
 
 @client.event
 async def on_guild_join(guild):
@@ -113,7 +113,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         elif ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
             query=sql.SQL('UPDATE {0} SET Items=array_append(Items,%s) WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(choice, user.id))
-            await ctx.respond(f'{user.name} was given {choice} ({category}{number+1:03})')
+            await ctx.respond(f'{user.name} was given {choice} ({category[-2]}{number+1:03})')
         elif choice in itemArray:
             query=sql.SQL('UPDATE {} SET Items=Items || %s WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(choice,user.id))
@@ -192,11 +192,14 @@ async def items(ctx, user:discord.Option(discord.Member, "whose items"), display
     cursor=conn.cursor()
     query=sql.SQL('SELECT Items FROM {guildID} where MemberID=%s').format(guildID=sql.Identifier(str(user.guild.id)))
     cursor.execute(query,(user.id,))
-    await ctx.respond(str(cursor.fetchone()), ephemeral=not display)
+    await ctx.respond(cursor.fetchone()[0].join(', '), ephemeral=not display)
 
 @viewCmnds.command(description="view player's schematics")
 async def schematics(ctx, user:discord.Option(discord.Member, "whose schemaitcs"), display:discord.Option(bool,"display command result to others")=True):
-        await ctx.respond(str(PLAYERS[user.guild.id][user.id]['Schematics']), ephemeral=not display)
+        cursor=conn.cursor()
+        query=sql.SQL('SELECT Schematics FROM {guildID} where MemberID=%s').format(guildID=sql.Identifier(str(user.guild.id)))
+        cursor.execute(query,(user.id,))
+        await ctx.respond(cursor.fetchone()[0].join(', '), ephemeral=not display)
 
 credit=client.create_group('credit')
 
