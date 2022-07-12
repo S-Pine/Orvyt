@@ -192,14 +192,22 @@ async def items(ctx, user:discord.Option(discord.Member, "whose items"), display
     cursor=conn.cursor()
     query=sql.SQL('SELECT Items FROM {guildID} where MemberID=%s').format(guildID=sql.Identifier(str(user.guild.id)))
     cursor.execute(query,(user.id,))
-    await ctx.respond(', '.join(cursor.fetchone()[0]), ephemeral=not display)
+    inventory=cursor.fetchone()[0]
+    if inventory.length>0:
+        await ctx.respond(', '.join(cursor.fetchone()[0]), ephemeral=not display)
+    else:
+        await ctx.respond('target has no items', ephemeral=not display)
 
 @viewCmnds.command(description="view player's schematics")
 async def schematics(ctx, user:discord.Option(discord.Member, "whose schemaitcs"), display:discord.Option(bool,"display command result to others")=True):
         cursor=conn.cursor()
         query=sql.SQL('SELECT Schematics FROM {guildID} where MemberID=%s').format(guildID=sql.Identifier(str(user.guild.id)))
         cursor.execute(query,(user.id,))
-        await ctx.respond(', '.join(cursor.fetchone()[0]), ephemeral=not display)
+        inventory=cursor.fetchone()[0]
+        if inventory.length>0:
+            await ctx.respond(', '.join(inventory), ephemeral=not display)
+        else:
+            await ctx.respond('target has no schematics', ephemeral=not display)
 
 credit=client.create_group('credit')
 
