@@ -193,7 +193,7 @@ async def items(ctx, user:discord.Option(discord.Member, "whose items"), display
     query=sql.SQL('SELECT Items FROM {guildID} where MemberID=%s').format(guildID=sql.Identifier(str(user.guild.id)))
     cursor.execute(query,(user.id,))
     inventory=cursor.fetchone()[0]
-    if inventory.length>0:
+    if len(inventory):
         await ctx.respond(', '.join(cursor.fetchone()[0]), ephemeral=not display)
     else:
         await ctx.respond('target has no items', ephemeral=not display)
@@ -204,7 +204,7 @@ async def schematics(ctx, user:discord.Option(discord.Member, "whose schemaitcs"
         query=sql.SQL('SELECT Schematics FROM {guildID} where MemberID=%s').format(guildID=sql.Identifier(str(user.guild.id)))
         cursor.execute(query,(user.id,))
         inventory=cursor.fetchone()[0]
-        if inventory.length>0:
+        if len(inventory)>0:
             await ctx.respond(', '.join(inventory), ephemeral=not display)
         else:
             await ctx.respond('target has no schematics', ephemeral=not display)
