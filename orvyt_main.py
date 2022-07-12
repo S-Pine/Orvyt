@@ -192,14 +192,14 @@ async def items(ctx, user:discord.Option(discord.Member, "whose items"), display
     cursor=conn.cursor()
     query=sql.SQL('SELECT Items FROM {guildID} where MemberID=%s').format(guildID=sql.Identifier(str(user.guild.id)))
     cursor.execute(query,(user.id,))
-    await ctx.respond(cursor.fetchone()[0].join(', '), ephemeral=not display)
+    await ctx.respond(', '.join(cursor.fetchone()[0]), ephemeral=not display)
 
 @viewCmnds.command(description="view player's schematics")
 async def schematics(ctx, user:discord.Option(discord.Member, "whose schemaitcs"), display:discord.Option(bool,"display command result to others")=True):
         cursor=conn.cursor()
         query=sql.SQL('SELECT Schematics FROM {guildID} where MemberID=%s').format(guildID=sql.Identifier(str(user.guild.id)))
         cursor.execute(query,(user.id,))
-        await ctx.respond(cursor.fetchone()[0].join(', '), ephemeral=not display)
+        await ctx.respond(', '.join(cursor.fetchone()[0]), ephemeral=not display)
 
 credit=client.create_group('credit')
 
