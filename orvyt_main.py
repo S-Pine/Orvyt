@@ -74,8 +74,8 @@ async def commmitdb(ctx):
             for member in guild.members:
                 query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
                 cursor.execute(query,(member.id,))
-        await ctx.respond("Database has been commited, or duplicated if you're stupid")
         conn.commit()
+        await ctx.respond("Database has been commited, or duplicated if you're stupid")
     else:
         await ctx.respond('you do not have permission to do that.', ephemeral=True)
 
