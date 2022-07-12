@@ -88,16 +88,17 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
     if category=='Schematic(S)':
         query=sql.SQL('SELECT Schematics FROM {} WHERE MemberID=%s').format(guildID)
         cursor.execute(query,(user.id,))
-        userHas=number in cursor.fetchone()[0] 
+        schemArray=cursor.fetchone()[0] 
         if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
             query=sql.SQL('UPDATE {} SET Schematics=Schematics || %s WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(number,user.id))
             await ctx.respond(f'{user.name} was given S{number:03}')
-        elif userHas:
+        elif number in schemArray:
             query=sql.SQL('UPDATE {} SET Schematics=Schematics || %s WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(number,user.id))
-            query=sql.SQL('UPDATE {} SET Schematics=Schematics EXCEPT %s WHERE MemberID=%s').format(guildID)
-            cursor.execute(query,(number,user.id))
+            schemArray.remove(number)
+            query=sql.SQL('UPDATE {} SET Schematics=%s WHERE MemberID=%s').format(guildID)
+            cursor.execute(query,(schemArray,user.id))
             await ctx.respond(f'you gave {user.name} S{number:03}') 
         else:
             await ctx.respond('you cannot give what you don\'t have')
@@ -106,18 +107,19 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         choice=MASTER_LIST[category[-2]][number]
         query=sql.SQL('SELECT Items FROM {} WHERE MemberID=%s').format(guildID)
         cursor.execute(query, (user.id,))
-        userHas=choice in cursor.fetchone()[0] 
+        itemArray=cursor.fetchone()[0]
         if number>=len(MASTER_LIST[category[-2]]) or number<0:
             ctx.respond('number is wrong, that\'s not a real item')
         elif ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
             query=sql.SQL('UPDATE {0} SET Items=array_append(Items,%s) WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(choice, user.id))
             await ctx.respond(f'{user.name} was given {choice} ({category}{number+1:03})')
-        elif userHas:
+        elif choice in itemArray:
             query=sql.SQL('UPDATE {} SET Items=Items || %s WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(choice,user.id))
-            query=sql.SQL('UPDATE {} SET Items=Items EXCEPT %s WHERE MemberID={}').format(guildID)
-            cursor.execute(query,(choice,user.id))
+            itemArray.remove(choice)
+            query=sql.SQL('UPDATE {} SET Items=%s WHERE MemberID={}').format(guildID)
+            cursor.execute(query,(itemArray,user.id))
             await ctx.respond(f'you gave {user.name} {choice}({category[-2]}{number+1:03})')
         else:
             await ctx.respond('you cannot give what you don\'t have')
@@ -132,8 +134,9 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
             cursor.execute(query, (user.id,))
             schemArray=cursor.fetchone()[0]
             if number in schemArray:
+                schemArray.remove(number)
                 query=sql.SQL('UPDATE {} SET Schematics=%s WHERE MemberID=%s').format(guildID)
-                cursor.execute(query,(schemArray.remove(number),user.id))
+                cursor.execute(query,(schemArray,user.id))
                 await ctx.respond(f'Schematic S{number:03} was removed from {user.name}')
             else:
                 await ctx.respond('Target does not posses that item.')
@@ -142,9 +145,11 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
             query=sql.SQL('SELECT Items FROM {} WHERE MemberID=%s').format(guildID)
             cursor.execute(query, (user.id,))
             itemArray=cursor.fetchone()[0]
+            print(itemArray)
             if item in itemArray:
+                itemArray.remove(item)
                 query=sql.SQL('UPDATE {} SET Items=%s WHERE MemberID=%s').format(guildID)
-                cursor.execute(query,(itemArray.remove(item),user.id))
+                cursor.execute(query,(itemArray,user.id))
                 await ctx.respond(f'Item {item}({category[-2]}{number:03}) removed from {user.name}')
             else:
                 await ctx.respond('Target does not posses that item.')
