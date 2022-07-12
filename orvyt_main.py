@@ -194,7 +194,7 @@ async def items(ctx, user:discord.Option(discord.Member, "whose items"), display
     cursor.execute(query,(user.id,))
     inventory=cursor.fetchone()[0]
     if len(inventory):
-        await ctx.respond(', '.join(cursor.fetchone()[0]), ephemeral=not display)
+        await ctx.respond(', '.join(inventory), ephemeral=not display)
     else:
         await ctx.respond('target has no items', ephemeral=not display)
 
