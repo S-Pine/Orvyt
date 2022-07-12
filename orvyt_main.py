@@ -91,14 +91,14 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         cursor.execute(query)
         userHas=number in cursor.fetchone()[0] 
         if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
-            query=sql.SQL('UPDATE {} SET Schematics=Schematics || %s WHERE MemberID={}').format(guildID, userID)
-            cursor.execute(query,(number,))
+            query=sql.SQL('UPDATE {} SET Schematics=Schematics || %s WHERE MemberID=%s').format(guildID)
+            cursor.execute(query,(number,userID))
             await ctx.respond(f'{user.name} was given S{number:03}')
         elif userHas:
-            query=sql.SQL('UPDATE {} SET Schematics=Schematics || %s WHERE MemberID={}').format(guildID, userID)
-            cursor.execute(query,(number,))
-            query=sql.SQL('UPDATE {} SET Schematics=Schematics EXCEPT %s WHERE MemberID={}').format(guildID,userID)
-            cursor.execute(query,(number,))
+            query=sql.SQL('UPDATE {} SET Schematics=Schematics || %s WHERE MemberID=%s').format(guildID)
+            cursor.execute(query,(number,userID))
+            query=sql.SQL('UPDATE {} SET Schematics=Schematics EXCEPT %s WHERE MemberID=%s').format(guildID)
+            cursor.execute(query,(number,userID))
             await ctx.respond(f'you gave {user.name} S{number:03}') 
         else:
             await ctx.respond('you cannot give what you don\'t have')
@@ -111,14 +111,14 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         if number>=len(MASTER_LIST[category]) or number<0:
             ctx.respond('number is wrong, that\'s not a real item')
         elif ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
-            query=sql.SQL('UPDATE {} SET %(cat)s=%(cat)s || %(choice)s WHERE MemberID={}').format(guildID, userID)
-            cursor.execute(query,{'cat':category[:-3],'choice':choice})
+            query=sql.SQL('UPDATE {} SET %(cat)s=%(cat)s || %(choice)s WHERE MemberID=%(Memb)s').format(guildID)
+            cursor.execute(query,{'cat':category[:-3],'choice':choice, 'Memb':userID})
             await ctx.respond(f'{user.name} was given {choice} ({category}{number+1:03})')
         elif userHas:
-            query=sql.SQL('UPDATE {} SET Items=Items || %s WHERE MemberID={}').format(guildID, userID)
-            cursor.execute(query,(choice,))
-            query=sql.SQL('UPDATE {} SET Items=Items EXCEPT %s WHERE MemberID={}').format(guildID,userID)
-            cursor.execute(query,(choice,))
+            query=sql.SQL('UPDATE {} SET Items=Items || %s WHERE MemberID=%s').format(guildID)
+            cursor.execute(query,(choice,userID))
+            query=sql.SQL('UPDATE {} SET Items=Items EXCEPT %s WHERE MemberID={}').format(guildID)
+            cursor.execute(query,(choice,userID))
             await ctx.respond(f'you gave {user.name} {choice}({category[-2]}{number+1:03})')
         else:
             await ctx.respond('you cannot give what you don\'t have')
@@ -129,20 +129,20 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
         cursor=conn.cursor()
         guildID=sql.Identifier(str(user.guild.id))
         userID=sql.Identifier(str(user.id))
-        query=sql.SQL('SELECT Schematics FROM {} WHERE MemberID={}').format(guildID,userID)
-        cursor.execute(query)
+        query=sql.SQL('SELECT Schematics FROM {} WHERE MemberID=%s').format(guildID)
+        cursor.execute(query, (userID,))
         targetHas=number in cursor.fetchone()[0] 
         if category=='Schematic(S)':
             if targetHas:
-                query=sql.SQL('UPDATE {} SET Schematics=Schematics EXCEPT %s WHERE MemberID={}').format(guildID,userID)
-                cursor.execute(query,(number,))
+                query=sql.SQL('UPDATE {} SET Schematics=Schematics EXCEPT %s WHERE MemberID=%s').format(guildID)
+                cursor.execute(query,(number,userID))
                 await ctx.respond(f'Schematic S{number:03} was removed from {user.name}')
             else:
                 await ctx.respond('Target does not posses that item.')
         else:
             item=MASTER_LIST[category][number-1]
-            query=sql.SQL('UPDATE {} SET Items=Items EXCEPT %s WHERE MemberID={}').format(guildID,userID)
-            cursor.execute(query,(item,))
+            query=sql.SQL('UPDATE {} SET Items=Items EXCEPT %s WHERE MemberID=%s').format(guildID)
+            cursor.execute(query,(item,userID))
             await ctx.respond(f'Item {item}({category[-2]}{number:03}) removed from {user.name}')
     else:
         await ctx.respond('You do not have permission to rob people.', ephemeral=True)
