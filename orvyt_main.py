@@ -35,15 +35,6 @@ GM={}
 @client.event
 async def on_ready():
     print('Orvyt_Online!')
-    cursor=conn.cursor()
-    for guild in client.guilds:
-        query=sql.SQL('CREATE TABLE {guildID} (MemberID BIGINT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
-        cursor.execute(query)
-        for role in guild.roles:
-            if role.name=='Game Master': GM[guild.id]=role.id
-        for member in guild.members:
-            query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
-            cursor.execute(query,(member.id,))
 
 @client.event
 async def on_guild_join(guild):
@@ -55,12 +46,14 @@ async def on_guild_join(guild):
         cursor.execute(query,(member.id,))
     for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
+    conn.commit()
 
 @client.event
 async def on_member_join(member):
     cursor=conn.cursor()
     query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(member.guild.id)))
     cursor.execute(query,(member.id,))
+    conn.commit()
 
 @client.slash_command()
 async def help(ctx, display:discord.Option(bool,"display command result to others")=True):
@@ -68,6 +61,19 @@ async def help(ctx, display:discord.Option(bool,"display command result to other
     longmsg+='give: allows you to trade or be given items for your inventory! \nremove\*: removed the stated item from a player. \nscavenge\*: for rolling on random tables to give players items. \n'
     longmsg+='masterlist\*: the GM can add or remove possible items\n view: see player\'s inventories and schematics!\n credit\*\*: exhange credits!\n \*: GM only'
     await ctx.respond(longmsg, ephemeral=not display)
+
+@client.slash_command()
+async def commmitdb(ctx, description="DO NOT TOUCH UNLESS YOU ARE OWEN"):
+    cursor=conn.cursor()
+    for guild in client.guilds:
+        query=sql.SQL('CREATE TABLE {guildID} (MemberID BIGINT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
+        cursor.execute(query)
+        for role in guild.roles:
+            if role.name=='Game Master': GM[guild.id]=role.id
+        for member in guild.members:
+            query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
+            cursor.execute(query,(member.id,))
+    conn.commit()
 
 @client.slash_command(description="responds with a random number between 1 and 10")
 async def dten(ctx, display:discord.Option(bool,"display command result to others")=True):
@@ -92,6 +98,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
             query=sql.SQL('UPDATE {} SET Schematics=Schematics || %s WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(number,user.id))
+            conn.commit()
             await ctx.respond(f'{user.name} was given S{number:03}')
         elif number in schemArray:
             query=sql.SQL('UPDATE {} SET Schematics=Schematics || %s WHERE MemberID=%s').format(guildID)
@@ -99,6 +106,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
             schemArray.remove(number)
             query=sql.SQL('UPDATE {} SET Schematics=%s WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(schemArray,user.id))
+            conn.commmit()
             await ctx.respond(f'you gave {user.name} S{number:03}') 
         else:
             await ctx.respond('you cannot give what you don\'t have')
@@ -109,10 +117,11 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         cursor.execute(query, (user.id,))
         itemArray=cursor.fetchone()[0]
         if number>=len(MASTER_LIST[category[-2]]) or number<0:
-            ctx.respond('number is wrong, that\'s not a real item')
+            await ctx.respond('number is wrong, that\'s not a real item')
         elif ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
             query=sql.SQL('UPDATE {0} SET Items=array_append(Items,%s) WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(choice, user.id))
+            conn.commit()
             await ctx.respond(f'{user.name} was given {choice} ({category[-2]}{number+1:03})')
         elif choice in itemArray:
             query=sql.SQL('UPDATE {} SET Items=Items || %s WHERE MemberID=%s').format(guildID)
@@ -120,6 +129,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
             itemArray.remove(choice)
             query=sql.SQL('UPDATE {} SET Items=%s WHERE MemberID={}').format(guildID)
             cursor.execute(query,(itemArray,user.id))
+            conn.commit()
             await ctx.respond(f'you gave {user.name} {choice}({category[-2]}{number+1:03})')
         else:
             await ctx.respond('you cannot give what you don\'t have')
@@ -167,6 +177,7 @@ async def scavenge(ctx, user:discord.Option(discord.Member),table:discord.Option
             response+=choice+', '
             query=sql.SQL('UPDATE {0} SET Items=array_append(Items,%s) WHERE MemberID=%s').format(sql.Identifier(str(user.guild.id)))
             cursor.execute(query,(choice, user.id))
+        conn.commit()
         await ctx.respond(f'{user.name} scavenged {response}')
     else:
         await ctx.respond('can\'t scavenge without the GM\'s premission!')
