@@ -35,15 +35,15 @@ GM={}
 @client.event
 async def on_ready():
     print('Orvyt_Online!')
-    # cursor=conn.cursor()
-    # for guild in client.guilds:
-    #     query=sql.SQL('CREATE TABLE {guildID} (MemberID BIGINT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
-    #     cursor.execute(query)
-    #     for role in guild.roles:
-    #         if role.name=='Game Master': GM[guild.id]=role.id
-    #     for member in guild.members:
-    #         query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
-    #         cursor.execute(query,(member.id,))
+    cursor=conn.cursor()
+    for guild in client.guilds:
+        query=sql.SQL('CREATE TABLE {guildID} (MemberID BIGINT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
+        cursor.execute(query)
+        for role in guild.roles:
+            if role.name=='Game Master': GM[guild.id]=role.id
+        for member in guild.members:
+            query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
+            cursor.execute(query,(member.id,))
 
 @client.event
 async def on_guild_join(guild):
