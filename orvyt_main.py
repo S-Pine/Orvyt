@@ -107,7 +107,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         query=sql.SQL('SELECT Items FROM {} WHERE MemberID=%s').format(guildID)
         cursor.execute(query, (user.id,))
         userHas=choice in cursor.fetchone()[0] 
-        if number>=len(MASTER_LIST[category]) or number<0:
+        if number>=len(MASTER_LIST[category[-2]]) or number<0:
             ctx.respond('number is wrong, that\'s not a real item')
         elif ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
             query=sql.SQL('UPDATE {} SET %(cat)s=%(cat)s || %(choice)s WHERE MemberID=%(Memb)s').format(guildID)
