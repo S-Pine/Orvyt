@@ -87,8 +87,8 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
     userID=sql.Identifier(str(user.id))
     cursor=conn.cursor()
     if category=='Schematic(S)':
-        query=sql.SQL('SELECT Schematics FROM {} WHERE MemberID={}').format(guildID,userID)
-        cursor.execute(query)
+        query=sql.SQL('SELECT Schematics FROM {} WHERE MemberID=%s').format(guildID)
+        cursor.execute(query,(userID,))
         userHas=number in cursor.fetchone()[0] 
         if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
             query=sql.SQL('UPDATE {} SET Schematics=Schematics || %s WHERE MemberID=%s').format(guildID)
