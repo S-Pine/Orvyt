@@ -10,7 +10,6 @@ intents = discord.Intents.default()
 intents.members = True
 
 GUILD_IDS=[842493087905611826, 989761552083197982]
-PLAYERS={}
 
 client=discord.Bot(intents=intents, debug_guilds=GUILD_IDS)
 
@@ -65,17 +64,20 @@ async def help(ctx, display:discord.Option(bool,"display command result to other
     longmsg+='masterlist\*: the GM can add or remove possible items\n view: see player\'s inventories and schematics!\n credit\*\*: exhange credits!\n \*: GM only'
     await ctx.respond(longmsg, ephemeral=not display)
 
-@client.slash_command(description="DO NOT TOUCH UNLESS YOU ARE OWEN")
+@client.slash_command(description="DO NOT TOUCH")
 async def commmitdb(ctx):
-    cursor=conn.cursor()
-    for guild in client.guilds:
-        query=sql.SQL('CREATE TABLE {guildID} (MemberID BIGINT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
-        cursor.execute(query)
-        for member in guild.members:
-            query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
-            cursor.execute(query,(member.id,))
-    await ctx.respond("Database has been commited, or duplicated if you're stupid")
-    conn.commit()
+    if ctx.interaction.user.id==693848229896388669:
+        cursor=conn.cursor()
+        for guild in client.guilds:
+            query=sql.SQL('CREATE TABLE {guildID} (MemberID BIGINT PRIMARY KEY, Credits INT DEFAULT 0, Items VARCHAR(25)[] DEFAULT ARRAY[]::VARCHAR(25)[], Schematics integer[] DEFAULT ARRAY[]::integer[])').format(guildID=sql.Identifier(str(guild.id)))
+            cursor.execute(query)
+            for member in guild.members:
+                query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
+                cursor.execute(query,(member.id,))
+        await ctx.respond("Database has been commited, or duplicated if you're stupid")
+        conn.commit()
+    else:
+        await ctx.respond('you do not have permission to do that.', ephemeral=True)
 
 @client.slash_command(description="responds with a random number between 1 and 10")
 async def dten(ctx, display:discord.Option(bool,"display command result to others")=True):
@@ -176,19 +178,19 @@ async def scavenge(ctx, user:discord.Option(discord.Member),table:discord.Option
     else:
         await ctx.respond('can\'t scavenge without the GM\'s premission!')
 
-masterlist=client.create_group('masterlist')
+# masterlist=client.create_group('masterlist')
 
-@masterlist.command(description="add possible material to master list")
-async def add(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)']),name:discord.Option(str, 'name of object')):
-    category=category[-2]
-    MASTER_LIST[category].append(name)
-    await ctx.respond(f'{name}({category}{len(MASTER_LIST[category]):03}) was added to the list')
+# @masterlist.command(description="add possible material to master list")
+# async def add(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)']),name:discord.Option(str, 'name of object')):
+#     category=category[-2]
+#     MASTER_LIST[category].append(name)
+#     await ctx.respond(f'{name}({category}{len(MASTER_LIST[category]):03}) was added to the list')
 
-@masterlist.command(description="remove last material from master list")
-async def remove(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)'])):
-    category=category[-2]
-    removed=MASTER_LIST[category].pop(len(MASTER_LIST[category])-1)
-    await ctx.respond(f'{removed}({category}{len(MASTER_LIST[category])+1:03}) was removed')
+# @masterlist.command(description="remove last material from master list")
+# async def remove(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)'])):
+#     category=category[-2]
+#     removed=MASTER_LIST[category].pop(len(MASTER_LIST[category])-1)
+#     await ctx.respond(f'{removed}({category}{len(MASTER_LIST[category])+1:03}) was removed')
 
 viewCmnds=client.create_group('view')
 
