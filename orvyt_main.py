@@ -138,7 +138,7 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
             else:
                 await ctx.respond('Target does not posses that item.')
         else:
-            item=MASTER_LIST[category][number-1]
+            item=MASTER_LIST[category[-2]][number-1]
             query=sql.SQL('UPDATE {} SET Items=Items EXCEPT %s WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(item,user.id))
             await ctx.respond(f'Item {item}({category[-2]}{number:03}) removed from {user.name}')
