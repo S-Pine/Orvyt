@@ -143,6 +143,7 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
                 schemArray.remove(number)
                 query=sql.SQL('UPDATE {} SET Schematics=%s WHERE MemberID=%s').format(guildID)
                 cursor.execute(query,(schemArray,user.id))
+                conn.commit()
                 await ctx.respond(f'Schematic S{number:03} was removed from {user.name}')
             else:
                 await ctx.respond('Target does not posses that item.')
@@ -156,6 +157,7 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
                 itemArray.remove(item)
                 query=sql.SQL('UPDATE {} SET Items=%s WHERE MemberID=%s').format(guildID)
                 cursor.execute(query,(itemArray,user.id))
+                conn.commit()
                 await ctx.respond(f'Item {item}({category[-2]}{number:03}) removed from {user.name}')
             else:
                 await ctx.respond('Target does not posses that item.')
@@ -236,7 +238,7 @@ async def give(ctx, user:discord.Option(discord.Member, "whom to give money to."
 async def remove(ctx, user:discord.Option(discord.Member, 'who\'s money to take'), wealth:discord.Option(int,"how much money to give", min_value=0)):
     if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
         cursor=conn.cursor()
-        query=sql.SQL('UPDATE {} SET Credits=Credits+%s WHERE MemberID=%s').format(sql.Identifier(str(user.guild.id)))
+        query=sql.SQL('UPDATE {} SET Credits=Credits-%s WHERE MemberID=%s').format(sql.Identifier(str(user.guild.id)))
         cursor.execute(query,(wealth,user.id))
         conn.commit()
         await ctx.respond(f'{user.name} lost {wealth} credits')
