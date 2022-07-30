@@ -1,17 +1,16 @@
 import discord
 import random
 import os
+from dotenv import load_dotenv
 import psycopg2
 from psycopg2 import sql
-
+load_dotenv()
 DATABASE_URL=os.environ['DATABASE_URL']
 conn=psycopg2.connect(DATABASE_URL, sslmode='require')
 intents = discord.Intents.default()
 intents.members = True
 
-GUILD_IDS=[842493087905611826, 989761552083197982]
-
-client=discord.Bot(intents=intents, debug_guilds=GUILD_IDS)
+client=discord.Bot(intents=intents)
 
 MASTER_LIST={
     'M':['Aluminium', 'Cobalt', 'Copper', 'Graphite', 'Gold', 'Iron', 'Niobium', 'Silver', 'Steel','Titanium'],
@@ -59,9 +58,17 @@ async def on_member_join(member):
 
 @client.slash_command()
 async def help(ctx, display:discord.Option(bool,"display command result to others")=True):
-    longmsg='My Commands! \ndten: returns a number between 1 and 10. \nlogall\*: logs all the information I have in this guild, necessary for when I need to be edited. \n'
-    longmsg+='give: allows you to trade or be given items for your inventory! \nremove\*: removed the stated item from a player. \nscavenge\*: for rolling on random tables to give players items. \n'
-    longmsg+='masterlist\*: the GM can add or remove possible items\n view: see player\'s inventories and schematics!\n credit\*\*: exhange credits!\n \*: GM only'
+    longmsg="""My Commands! 
+    dten: returns a number between 1 and 10. 
+    logall\*: logs all the information I have in this guild, necessary for when I need to be edited.
+    give: allows you to trade or be given items for your inventory! 
+    remove\*: removed the stated item from a player. 
+    scavenge\*: for rolling on random tables to give players items. 
+    masterlist\*: the GM can add or remove possible items
+     view: see player\'s inventories and schematics!
+      credit: exhange credits!
+       \*: GM only
+    """
     await ctx.respond(longmsg, ephemeral=not display)
 
 @client.slash_command(description="DO NOT TOUCH")
@@ -102,33 +109,37 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
             schemArray.remove(number)
             query=sql.SQL('UPDATE {} SET Schematics=%s WHERE MemberID=%s').format(guildID)
             cursor.execute(query,(schemArray,user.id))
-            conn.commmit()
+            conn.commit()
             await ctx.respond(f'you gave {user.name} S{number:03}') 
         else:
             await ctx.respond('you cannot give what you don\'t have')
     else:
         number-=1
-        choice=MASTER_LIST[category[-2]][number]
+        query=sql.SQL('SELECT Items FROM MASTER_LIST WHERE Category=%s')
+        cursor.execute(query,(category[-2]))
+        categoryItems=cursor.fetchone()[0]
         query=sql.SQL('SELECT Items FROM {} WHERE MemberID=%s').format(guildID)
         cursor.execute(query, (user.id,))
         itemArray=cursor.fetchone()[0]
-        if number>=len(MASTER_LIST[category[-2]]) or number<0:
+        if number>=len(categoryItems) or number<0:
             await ctx.respond('number is wrong, that\'s not a real item')
-        elif ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
-            query=sql.SQL('UPDATE {0} SET Items=array_append(Items,%s) WHERE MemberID=%s').format(guildID)
-            cursor.execute(query,(choice, user.id))
-            conn.commit()
-            await ctx.respond(f'{user.name} was given {choice} ({category[-2]}{number+1:03})')
-        elif choice in itemArray:
-            query=sql.SQL('UPDATE {} SET Items=Items || %s WHERE MemberID=%s').format(guildID)
-            cursor.execute(query,(choice,user.id))
-            itemArray.remove(choice)
-            query=sql.SQL('UPDATE {} SET Items=%s WHERE MemberID={}').format(guildID)
-            cursor.execute(query,(itemArray,user.id))
-            conn.commit()
-            await ctx.respond(f'you gave {user.name} {choice}({category[-2]}{number+1:03})')
         else:
-            await ctx.respond('you cannot give what you don\'t have')
+            choice=categoryItems[number]
+            if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
+                query=sql.SQL('UPDATE {0} SET Items=array_append(Items,%s) WHERE MemberID=%s').format(guildID)
+                cursor.execute(query,(choice, user.id))
+                conn.commit()
+                await ctx.respond(f'{user.name} was given {choice} ({category[-2]}{number+1:03})')
+            elif choice in itemArray:
+                query=sql.SQL('UPDATE {} SET Items=Items || %s WHERE MemberID=%s').format(guildID)
+                cursor.execute(query,(choice,user.id))
+                itemArray.remove(choice)
+                query=sql.SQL('UPDATE {} SET Items=%s WHERE MemberID={}').format(guildID)
+                cursor.execute(query,(itemArray,user.id))
+                conn.commit()
+                await ctx.respond(f'you gave {user.name} {choice}({category[-2]}{number+1:03})')
+            else:
+                await ctx.respond('you cannot give what you don\'t have')
 
 @client.slash_command(description="remove item from player's inventory (GM only)")
 async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), category:discord.Option(str,choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)', 'Schematic(S)']),number:discord.Option(int, "what serial number of item", min_value=1)):
@@ -148,11 +159,15 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
             else:
                 await ctx.respond('Target does not posses that item.')
         else:
-            item=MASTER_LIST[category[-2]][number-1]
+            query=sql.SQL('SELECT Items FROM MASTER_LIST WHERE Category=%s')
+            cursor.execute(query,(category[-2]))
+            categoryItems=cursor.fetchone()[0]
+            if number>=len(categoryItems) or number<0:
+                await ctx.respond('number is wrong, that\'s not a real item')
+            item=categoryItems[number-1]
             query=sql.SQL('SELECT Items FROM {} WHERE MemberID=%s').format(guildID)
             cursor.execute(query, (user.id,))
             itemArray=cursor.fetchone()[0]
-            print(itemArray)
             if item in itemArray:
                 itemArray.remove(item)
                 query=sql.SQL('UPDATE {} SET Items=%s WHERE MemberID=%s').format(guildID)
@@ -180,19 +195,37 @@ async def scavenge(ctx, user:discord.Option(discord.Member),table:discord.Option
     else:
         await ctx.respond('can\'t scavenge without the GM\'s premission!')
 
-# masterlist=client.create_group('masterlist')
+masterlist=client.create_group('masterlist')
 
-# @masterlist.command(description="add possible material to master list")
-# async def add(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)']),name:discord.Option(str, 'name of object')):
-#     category=category[-2]
-#     MASTER_LIST[category].append(name)
-#     await ctx.respond(f'{name}({category}{len(MASTER_LIST[category]):03}) was added to the list')
+@masterlist.command(description="add possible material to master list")
+async def add(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)']),name:discord.Option(str, 'name of object')):
+    if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
+        cursor=conn.cursor()
+        category=category[-2]
+        query=sql.SQL('SELECT array_length(Items,1) FROM MASTER_LIST WHERE Category=%s')
+        cursor.execute(query,(category,))
+        newSerial=cursor.fetchone()[0]
+        query=sql.SQL('UPDATE MASTER_LIST SET Items=array_append(Items,%s) WHERE Category=%s')
+        cursor.execute(query,(name,category))
+        conn.commit()
+        await ctx.respond(f'{name}({category}{newSerial:03}) was added to the list')
+    else:
+        await ctx.respond('you do not have permission to edit the master list',ephemeral=True)
 
-# @masterlist.command(description="remove last material from master list")
-# async def remove(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)'])):
-#     category=category[-2]
-#     removed=MASTER_LIST[category].pop(len(MASTER_LIST[category])-1)
-#     await ctx.respond(f'{removed}({category}{len(MASTER_LIST[category])+1:03}) was removed')
+@masterlist.command(description="remove last material from master list")
+async def remove(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)'])):
+    if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
+        cursor=conn.cursor()
+        category=category[-2]
+        query=sql.SQL('SELECT Items FROM MASTER_LIST WHERE Category=%s')
+        cursor.execute(query,(category,))
+        pastArray=cursor.fetchone()[0]
+        query=sql.SQL('UPDATE MASTER_LIST SET Items=trim_array(Items,1) WHERE Category=%s')
+        cursor.execute(query,(category,))
+        conn.commit()
+        await ctx.respond(f'{pastArray[len(pastArray)-1]}({category}{len(pastArray)-1:03}) was removed')
+    else:
+        await ctx.respond('you do not have permission to edit the master list',ephemeral=True)
 
 viewCmnds=client.create_group('view')
 
