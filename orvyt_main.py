@@ -204,7 +204,7 @@ async def add(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)','
         category=category[-2]
         query=sql.SQL('SELECT array_length(Items,1) FROM MASTER_LIST WHERE Category=%s')
         cursor.execute(query,(category,))
-        newSerial=cursor.fetchone()[0]
+        newSerial=cursor.fetchone()[0]+1
         query=sql.SQL('UPDATE MASTER_LIST SET Items=array_append(Items,%s) WHERE Category=%s')
         cursor.execute(query,(name,category))
         conn.commit()
@@ -223,7 +223,7 @@ async def remove(ctx, category:discord.Option(str, choices=['Metal(M)','Fluid(F)
         query=sql.SQL('UPDATE MASTER_LIST SET Items=trim_array(Items,1) WHERE Category=%s')
         cursor.execute(query,(category,))
         conn.commit()
-        await ctx.respond(f'{pastArray[len(pastArray)-1]}({category}{len(pastArray)-1:03}) was removed')
+        await ctx.respond(f'{pastArray[len(pastArray)-1]}({category}{len(pastArray):03}) was removed')
     else:
         await ctx.respond('you do not have permission to edit the master list',ephemeral=True)
 
