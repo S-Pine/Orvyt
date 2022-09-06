@@ -285,5 +285,187 @@ async def view(ctx, user:discord.Option(discord.Member, 'who\'s money to view'),
     cursor.execute(query, (user.id,))
     creditNum=cursor.fetchone()[0]
     await ctx.respond(f'{user.name} has {creditNum} Credits', ephemeral= not displayed)
+gradeRGB={
+    'A':16171112,
+    'B':9320183,
+    'C':10157135,
+    'D':8902392,
+    'F':6513507,
+    'U':16732751
+}
+
+WEAPON_TABLES={
+    "Fray":{
+        "F":{
+            "Range":(1,),
+            "Damage":(1,),
+            "Charge Time":(1,2,3),
+            "Trait":5
+        },
+        "D":{
+            "Range":(1,),
+            "Damage":(1,2),
+            "Charge Time":(1,2),
+            "Trait":10
+        },
+        "C":{
+            "Range":(1,),
+            "Damage":(1,2),
+            "Charge Time":(2,),
+            "Trait":25
+        },
+        "B":{
+            "Range":(1,),
+            "Damage":(1,2,3),
+            "Charge Time":(1,),
+            "Trait":50
+        },
+        "A":{
+            "Range":(1,),
+            "Damage":(2,3),
+            "Charge Time":(1,),
+            "Trait":90
+        },
+        "U":{
+            "Range":(1,),
+            "Damage":(1,2,3,4),
+            "Charge Time":(1,2),
+            "Trait":50
+        }
+    },
+   "Standard":{
+        "F":{
+            "Range":(1,2,3),
+            "Damage":(1,),
+            "Charge Time":(3,4,5),
+            "Trait":5
+        },
+        "D":{
+            "Range":(2,3),
+            "Damage":(1,2),
+            "Charge Time":(3,4),
+            "Trait":10
+        },
+        "C":{
+            "Range":(3,),
+            "Damage":(2,3),
+            "Charge Time":(3,),
+            "Trait":25
+        },
+        "B":{
+            "Range":(3,4),
+            "Damage":(3,4),
+            "Charge Time":(2,3),
+            "Trait":50
+        },
+        "A":{
+            "Range":(4,5),
+            "Damage":(4,5),
+            "Charge Time":(2,),
+            "Trait":90
+        },
+        "U":{
+            "Range":(1,2,3,4,5,6),
+            "Damage":(1,2,3,4,5),
+            "Charge Time":(1,2,3,4,5,6),
+            "Trait":50
+        }
+    },
+    "Strife":{
+        "F":{
+            "Range":(2,3),
+            "Damage":(2,3,4),
+            "Charge Time":(5,6),
+            "Trait":5
+        },
+        "D":{
+            "Range":(3,4),
+            "Damage":(3,4),
+            "Charge Time":(4,5,6),
+            "Trait":10
+        },
+        "C":{
+            "Range":(4,5),
+            "Damage":(3,4,5),
+            "Charge Time":(4,5),
+            "Trait":25
+        },
+        "B":{
+            "Range":(4,5,6),
+            "Damage":(4,5),
+            "Charge Time":(3,4,5),
+            "Trait":50
+        },
+        "A":{
+            "Range":(5,6,7),
+            "Damage":(4,5,6),
+            "Charge Time":(2,3,4),
+            "Trait":90
+        },
+        "U":{
+            "Range":(2,3,4,5,6,7),
+            "Damage":(1,2,3,4,5,6,7),
+            "Charge Time":(2,3,4,5,6),
+            "Trait":50
+        }
+    },
+    "Long":{
+        "F":{
+            "Range":(5,6,7,8),
+            "Damage":(3,4,5),
+            "Charge Time":(5,6,7,8),
+            "Trait":5
+        },
+        "D":{
+            "Range":(5,6,7,8,9),
+            "Damage":(4,5,6),
+            "Charge Time":(5,6,7),
+            "Trait":10
+        },
+        "C":{
+            "Range":(6,7,8,9),
+            "Damage":(4,5,6,7),
+            "Charge Time":(4,5,6),
+            "Trait":25
+        },
+        "B":{
+            "Range":(7,8,9,10),
+            "Damage":(6,7,8,9),
+            "Charge Time":(4,5),
+            "Trait":50
+        },
+        "A":{
+            "Range":(7,8,9,10,11),
+            "Damage":(7,8,9,10),
+            "Charge Time":(3,4,5),
+            "Trait":90
+        },
+        "U":{
+            "Range":(5,6,7,8,9,10,11,12),
+            "Damage":(1,2,3,4,5,6,7),
+            "Charge Time":(3,4,5,6,7,8),
+            "Trait":50
+        }
+    }
+}
+
+@client.slash_command(description="generate a weapon")
+async def compose(ctx, type:discord.Option(str, choices=['Fray','Standard','Strife','Long']),grade:discord.Option(str,choices=['F','D','C','B','A','U'])):
+    choice=WEAPON_TABLES[type][grade]
+    weapon={}
+    weapon['Range']=random.choice(choice['Range'])
+    weapon['Damage']
+
+
+
+gradeRGB={
+    'A':16171112,
+    'B':9320183,
+    'C':10157135,
+    'D':8902392,
+    'F':6513507,
+    'U':16732751
+}
+
 
 client.run(os.environ['ORVYT_TOKEN'])
