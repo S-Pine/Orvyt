@@ -236,9 +236,10 @@ async def inventory(ctx, user:discord.Option(discord.Member, "whose invnetory"),
     cursor.execute(query,(user.id,))
     inventory=cursor.fetchone()[0]
     for i,item in enumerate(inventory):
+        print(item)
         if item[0]=='W':
-            query=sql.SQL('SELECT name FROM Weapons.{0} WHERE Index=%s').format(sql.Identifier(str(user.guild.id)))
-            cursor.execute(query,(item[1:]))
+            query=sql.SQL('SELECT name FROM Weapons.{} WHERE Index=%s').format(sql.Identifier(str(user.guild.id)))
+            cursor.execute(query,(item[1:],))
             response=cursor.fetchone()[0]
             if response:
                 inventory[i]=response
@@ -637,18 +638,23 @@ async def give(ctx, user:discord.Option(discord.Member,'whom to give'),weapon:di
         await ctx.respond(f'{weapon} was given to {user.name}')
 
 @weaponCmnds.command(description='for debugging')
-async def remove(ctx, weapon:discord.Option(str)):
+async def delete(ctx, weapon:discord.Option(str)):
     if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
         cursor=conn.cursor()
+        query=sql.SQL('SELECT index FROM Weapons.{} WHERE name=%s').format(sql.Identifier(str(ctx.interaction.guild.id)))
+        cursor.execute(query,(weapon,))
+        weaponIndex=cursor.fetchone()[0]
         query=sql.SQL('DELETE FROM Weapons.{} WHERE name=%s').format(sql.Identifier(str(ctx.interaction.guild.id)))
         cursor.execute(query,(weapon,))
+        query=sql.SQL('UPDATE {} SET Items=array_remove(Items,%s)').format(sql.Identifier(str(ctx.interaction.guild.id)))
+        cursor.execute(query,("W"+str(weaponIndex),))
         conn.commit()
         await ctx.respond(f'{weapon} has been removed')
     else:
         await ctx.respond('You do not have permission to do that.')
 
 @weaponCmnds.command(description="custom Weapon")
-async def design(ctx, name:discord.Option(str),type:discord.Option(str, choices=['Fray','Standard','Strife','Long']),grade:discord.Option(str,choices=['F','D','C','B','A','U']),range:discord.Option(int),damage:discord.Option(int),chargetime:discord.Option(int),blastradius:discord.Option(int),trait:discord.Option(str)="none", traitchoice1:discord.Option(int)=-1,traitchoice2:discord.Option(int)=-1):
+async def design(ctx, name:discord.Option(str),type:discord.Option(str, choices=['Fray','Standard','Strife','Long']),grade:discord.Option(str,choices=['F','D','C','B','A','U']),range:discord.Option(int),damage:discord.Option(int),chargetime:discord.Option(int),blastradius:discord.Option(int),trait:discord.Option(str)="none", traitchoice1:discord.Option(int)=None,traitchoice2:discord.Option(int)=None):
     if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
         response=f"{name} created!"
         cursor=conn.cursor()
