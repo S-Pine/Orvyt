@@ -30,9 +30,9 @@ class ViewCmnds(commands.Cog):
                     cursor.execute(query,(inventory,user.id))
                     conn.commit()
         if len(inventory):
-            await ctx.respond(f"{user.name} has "+', '.join(inventory), ephemeral=not display)
+            await ctx.respond(f"{user.name} has "+', '.join(inventory), ephemeral=(not display))
         else:
-            await ctx.respond('target has no items', ephemeral=not display)
+            await ctx.respond('target has no items', ephemeral=(not display))
 
     @viewCmnds.command(description="view player's schematics")
     async def schematics(self, ctx, user:discord.Option(discord.Member, "whose schemaitcs"), display:discord.Option(bool,"display command result to others")=True):
@@ -43,7 +43,7 @@ class ViewCmnds(commands.Cog):
             if len(inventory)>0:
                 await ctx.respond(f"{user.name} has"+', '.join(map(lambda a: 'S{:03}'.format(a), inventory)), ephemeral=not display)
             else:
-                await ctx.respond('target has no schematics', ephemeral=not display)
+                await ctx.respond('target has no schematics', ephemeral=(not display))
 
 gradeRGB={
     'A':16171112,

@@ -41,4 +41,4 @@ class CreditCmnds(commands.Cog):
         query=sql.SQL('SELECT Credits FROM {} WHERE MemberID=%s').format(sql.Identifier(str(user.guild.id)))
         cursor.execute(query, (user.id,))
         creditNum=cursor.fetchone()[0]
-        await ctx.respond(f'{user.name} has {creditNum} Credits', ephemeral= not displayed)
+        await ctx.respond(f'{user.name} has {creditNum} Credits', ephemeral=(not displayed))

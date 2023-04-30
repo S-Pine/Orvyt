@@ -65,7 +65,7 @@ async def help(ctx, display:discord.Option(bool,"display command result to other
     weapon: create, edit and view weapons!
        \*: GM only
     """
-    await ctx.respond(longmsg, ephemeral=not display)
+    await ctx.respond(longmsg, ephemeral=(not display))
 
 @client.slash_command(description="DO NOT TOUCH")
 async def commmitdb(ctx):
@@ -85,7 +85,7 @@ async def commmitdb(ctx):
 
 @client.slash_command(description="responds with a random number between 1 and 10")
 async def dten(ctx, display:discord.Option(bool,"display command result to others")=True):
-    await ctx.respond(str(random.randint(1,10)), ephemeral=not display)
+    await ctx.respond(str(random.randint(1,10)), ephemeral=(not display))
 
 @client.slash_command(description='gives item to player\'s inventory')
 async def give(ctx, user:discord.Option(discord.Member, "who to give to."), category:discord.Option(str,choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I)', 'Schematic(S)']), number:discord.Option(int, "what serial number of item", min_value=1)):
@@ -109,7 +109,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
             conn.commit()
             await ctx.respond(f'you gave {user.name} S{number:03}') 
         else:
-            await ctx.respond('you cannot give what you don\'t have')
+            await ctx.respond('you cannot give what you don\'t have', ephemeral=True)
     else:
         number-=1
         query=sql.SQL('SELECT Items FROM MASTER_LIST WHERE Category=%s')
@@ -119,7 +119,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
         cursor.execute(query, (user.id,))
         itemArray=cursor.fetchone()[0]
         if number>=len(categoryItems) or number<0:
-            await ctx.respond('number is wrong, that\'s not a real item')
+            await ctx.respond('number is wrong, that\'s not a real item', ephemeral=True)
         else:
             choice=categoryItems[number]
             if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
@@ -136,7 +136,7 @@ async def give(ctx, user:discord.Option(discord.Member, "who to give to."), cate
                 conn.commit()
                 await ctx.respond(f'you gave {user.name} {choice}({category[-2]}{number+1:03})')
             else:
-                await ctx.respond('you cannot give what you don\'t have')
+                await ctx.respond('you cannot give what you don\'t have', ephemeral=True)
 
 @client.slash_command(description="remove item from player's inventory (GM only)")
 async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), category:discord.Option(str,choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I),','Weapon(W)', 'Schematic(S)']),number:discord.Option(int, "what serial number of item", min_value=1)):
@@ -154,13 +154,13 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
                 conn.commit()
                 await ctx.respond(f'Schematic S{number:03} was removed from {user.name}')
             else:
-                await ctx.respond('Target does not posses that item.')
+                await ctx.respond('Target does not posses that item.', ephemeral=True)
         else:
             query=sql.SQL('SELECT Items FROM MASTER_LIST WHERE Category=%s')
             cursor.execute(query,(category[-2]))
             categoryItems=cursor.fetchone()[0]
             if number>=len(categoryItems) or number<0:
-                await ctx.respond('number is wrong, that\'s not a real item')
+                await ctx.respond('number is wrong, that\'s not a real item', ephemeral=True)
             item=categoryItems[number-1]
             query=sql.SQL('SELECT Items FROM {} WHERE MemberID=%s').format(guildID)
             cursor.execute(query, (user.id,))
@@ -172,7 +172,7 @@ async def remove(ctx, user:discord.Option(discord.Member, "who to take from"), c
                 conn.commit()
                 await ctx.respond(f'Item {item}({category[-2]}{number:03}) removed from {user.name}')
             else:
-                await ctx.respond('Target does not posses that item.')
+                await ctx.respond('Target does not posses that item.', ephemeral=True)
     else:
         await ctx.respond('You do not have permission to rob people.', ephemeral=True)
             
@@ -192,6 +192,6 @@ async def scavenge(ctx, user:discord.Option(discord.Member),table:discord.Option
         conn.commit()
         await ctx.respond(f'{user.name} scavenged {response}')
     else:
-        await ctx.respond('can\'t scavenge without the GM\'s premission!')
+        await ctx.respond('can\'t scavenge without the GM\'s premission!', ephemeral=True)
 
 client.run(ORVYT_TOKEN)

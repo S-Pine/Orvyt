@@ -1,9 +1,9 @@
 import discord
-from discord.ext import commands
+from discord.ext.commands import *
 from psycopg2 import sql
 from orvyt_misc import GM,conn
 
-class MasterList(commands.Cog):
+class MasterList(Cog):
     def __init__(self, bot):
         self.bot = bot
         self.last_member=None

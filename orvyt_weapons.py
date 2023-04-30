@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext.commands import Cog
 import random
 import string
 from ast import literal_eval
@@ -8,7 +8,7 @@ from psycopg2.extras import RealDictCursor
 from psycopg2.extensions import AsIs
 from orvyt_misc import conn,WEAPON_TABLES,GM,TRAITS
 
-class WeaponCmnds(commands.Cog):
+class WeaponCmnds(Cog):
     def __init__(self, bot):
         self.bot = bot
         self.last_member=None
@@ -16,7 +16,7 @@ class WeaponCmnds(commands.Cog):
     weaponCmnds=discord.SlashCommandGroup(name="weapon",description="edit, view and create weapons")
 
     @weaponCmnds.command(description="generate a weapon")
-    async def compose(self, ctx, type:discord.Option(str, choices=['Fray','Standard','Strife','Long']),grade:discord.Option(str,choices=['F','D','C','B','A','U'])):
+    async def compose(self, ctx, type:discord.Option(str, choices=['Fray','Standard','Strife','Long']),grade:discord.Option(str,choices=['F','D','C','B','A','U']), owner:discord.Option(discord.Member,"Whom to give the weapon")=None):
         if ctx.interaction.user.get_role(GM[ctx.interaction.guild.id])!= None:
             cursor=conn.cursor()
             choice=WEAPON_TABLES[type][grade]
@@ -42,9 +42,18 @@ class WeaponCmnds(commands.Cog):
             query=sql.SQL("INSERT INTO Weapons.{0} (%s) VALUES %s").format(sql.Identifier(str(ctx.interaction.guild.id)))
             cursor.execute(query, (AsIs(', '.join(columns)), tuple([str(weapon[column]) for column in columns])))
             conn.commit()
-            await ctx.respond('Weapon Created', embed=weapon_embed(weapon))
+            if owner==None:
+                await ctx.respond('Weapon Created', embed=weapon_embed(weapon))
+            else:
+                query=sql.SQL('SELECT index FROM Weapons.{0} WHERE name=%s').format(sql.Identifier(str(ctx.interaction.guild.id)))
+                cursor.execute(query,(weapon["name"],))
+                weaponSerial=cursor.fetchone()[0]
+                query=sql.SQL('UPDATE {0} SET Items=array_append(Items,%s) WHERE MemberID=%s').format(sql.Identifier(str(ctx.interaction.guild.id)))
+                cursor.execute(query,("W"+str(weaponSerial),owner.id))
+                conn.commit()
+                await ctx.respond(f'Weapon created and given to {owner.name}', embed=weapon_embed(weapon))
         else:
-            await ctx.respond('You do not have permission to do that')
+            await ctx.respond('You do not have permission to do that', ephemeral=True)
 
     @weaponCmnds.command( description='rename a weapon')
     async def rename(self, ctx, weapon:discord.Option(str), newname:discord.Option(str)):
@@ -67,9 +76,9 @@ class WeaponCmnds(commands.Cog):
         cursor.execute(query,(weapon,))
         response=cursor.fetchone()
         if response:
-            await ctx.respond('here it is!',embed=weapon_embed(response), ephemeral=not display)
+            await ctx.respond('here it is!',embed=weapon_embed(response), ephemeral=(not display))
         else:
-            await ctx.respond('weapon does not exist', ephemeral=not display)
+            await ctx.respond('weapon does not exist', ephemeral=(not display))
 
     @weaponCmnds.command(description='rework a weapon')
     async def rework(self, ctx, weapon:discord.Option(str)):
@@ -136,9 +145,9 @@ class WeaponCmnds(commands.Cog):
                 conn.commit()
                 await ctx.respond(f'{weapon} has been removed')
             except:
-                await ctx.respond(f'No weapon called {weapon} found')
+                await ctx.respond(f'No weapon called {weapon} found', ephermeral=True)
         else:
-            await ctx.respond('You do not have permission to do that.')
+            await ctx.respond('You do not have permission to do that.', ephemeral=True)
 
     @weaponCmnds.command(description="custom Weapon")
     async def design(self, ctx, name:discord.Option(str),type:discord.Option(str, choices=['Fray','Standard','Strife','Long']),grade:discord.Option(str,choices=['F','D','C','B','A','U']),range:discord.Option(int),damage:discord.Option(int),chargetime:discord.Option(int),blastradius:discord.Option(int),trait:discord.Option(str)="none", traitchoice1:discord.Option(int)=None,traitchoice2:discord.Option(int)=None):
@@ -149,7 +158,7 @@ class WeaponCmnds(commands.Cog):
             cursor.execute(query)
             takenNames=cursor.fetchall()
             if ((name,) in takenNames):
-                await ctx.respond('that name is taken.')
+                await ctx.respond('that name is taken.', ephemeral=True)
             else:
                 try:
                     weapon={
@@ -182,9 +191,9 @@ class WeaponCmnds(commands.Cog):
                     query=sql.SQL("INSERT INTO Weapons.{0} (%s) VALUES %s").format(sql.Identifier(str(ctx.interaction.guild.id)))
                     cursor.execute(query, (AsIs(', '.join(columns)), tuple([str(weapon[column]) for column in columns])))
                     conn.commit()
-                    await ctx.respond(response)
+                    await ctx.respond(response,embed=weapon_embed(weapon))
                 except: 
-                    await ctx.respond('something went wrong! check if you put in the right trait parameters, or if you spelled the trait right, (capitalisation doesn\'t matter).')
+                    await ctx.respond('something went wrong! check if you put in the right trait parameters, or if you spelled the trait right, (capitalisation doesn\'t matter).', ephemeral=True)
 
 def trait_selector():
     traitChoice=random.choice(TRAITS)
