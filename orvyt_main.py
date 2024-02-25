@@ -10,7 +10,6 @@ from orvyt_credits import CreditCmnds
 # DATABASE_URL=environ['DATABASE_URL']
 intents = discord.Intents.default()
 intents.members = True
-
 client=discord.Bot(intents=intents)
 client.add_cog(MasterList(client))
 client.add_cog(ViewCmnds(client))
@@ -30,6 +29,17 @@ async def on_ready():
     for guild in client.guilds:
         for role in guild.roles:
             if role.name=='Game Master': GM[guild.id]=role.id
+        cursor=conn.cursor()
+        query=sql.SQL('SELECT memberid FROM {guildID};').format(guildID=sql.Identifier(str(guild.id)))
+        cursor.execute(query)
+        result=[i[0] for i in cursor.fetchall()]
+        print(result)
+        for member in guild.members:
+            if member.id not in result:
+                query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
+                cursor.execute(query,(member.id,))
+                conn.commit()
+
     print('Orvyt_Online!')
 
 @client.event
@@ -55,7 +65,6 @@ async def on_member_join(member):
 async def help(ctx, display:discord.Option(bool,"display command result to others")=True):
     longmsg="""My Commands! 
     dten: returns a number between 1 and 10. 
-    logall\*: logs all the information I have in this guild, necessary for when I need to be edited.
     give: allows you to trade or be given items for your inventory! 
     remove\*: removed the stated item from a player. 
     scavenge\*: for rolling on random tables to give players items. 
@@ -83,9 +92,15 @@ async def commmitdb(ctx):
     else:
         await ctx.respond('you do not have permission to do that.', ephemeral=True)
 
+
 @client.slash_command(description="responds with a random number between 1 and 10")
 async def dten(ctx, display:discord.Option(bool,"display command result to others")=True):
     await ctx.respond(str(random.randint(1,10)), ephemeral=(not display))
+
+@client.user_command(name="dten")
+async def die(ctx,member: discord.Member):
+    await ctx.respond(str(random.randint(1,10)))
+    
 
 @client.slash_command(description='gives item to player\'s inventory')
 async def give(ctx, user:discord.Option(discord.Member, "who to give to."), category:discord.Option(str,choices=['Metal(M)','Fluid(F)','Irradiated(R)','Component(C)','Item(I)', 'Schematic(S)']), number:discord.Option(int, "what serial number of item", min_value=1)):

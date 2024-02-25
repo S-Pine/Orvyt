@@ -21,9 +21,9 @@ class ViewCmnds(commands.Cog):
             if item[0]=='W':
                 query=sql.SQL('SELECT name FROM Weapons.{} WHERE Index=%s').format(sql.Identifier(str(user.guild.id)))
                 cursor.execute(query,(item[1:],))
-                response=cursor.fetchone()[0]
+                response=cursor.fetchone()
                 if response:
-                    inventory[i]=response
+                    inventory[i]=response[0]
                 else:
                     inventory.remove(item)
                     query=sql.SQL('UPDATE {} SET items=%s WHERE MemberID=%s').format(sql.Identifier(str(user.guild.id)))

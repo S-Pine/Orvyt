@@ -1,4 +1,3 @@
-import random
 import json
 from psycopg2 import connect
 from dotenv import load_dotenv
