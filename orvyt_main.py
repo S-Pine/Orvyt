@@ -33,7 +33,6 @@ async def on_ready():
         query=sql.SQL('SELECT memberid FROM {guildID};').format(guildID=sql.Identifier(str(guild.id)))
         cursor.execute(query)
         result=[i[0] for i in cursor.fetchall()]
-        print(result)
         for member in guild.members:
             if member.id not in result:
                 query=sql.SQL('INSERT INTO {guildID} (MemberID) VALUES (%s)').format(guildID=sql.Identifier(str(guild.id)))
