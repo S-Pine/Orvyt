@@ -98,7 +98,7 @@ async def dten(ctx,bonus:discord.Option(int,"bonus to add")=0, display:discord.O
         await ctx.respond(str(random.randint(1,10))+":game_die:", ephemeral=(not display))
     else:
         r=random.randint(1,10)
-        await ctx.respond("{}, ({}:game_die: + {})".format(r+bonus,r,bonus),ephemeral=(not display))
+        await ctx.respond("{}, ({}:game_die: {:+})".format(r+bonus,r,bonus),ephemeral=(not display))
 
 @client.user_command(name="dten")
 async def die(ctx,member: discord.Member):
